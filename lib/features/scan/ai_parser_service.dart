@@ -10,6 +10,7 @@ class AiParseResult {
   final List<Map<String, dynamic>> items;
   final String? paymentMethod;
   final bool isReceipt;
+  final String? raw;
 
   AiParseResult({
     this.storeName,
@@ -18,6 +19,7 @@ class AiParseResult {
     this.items = const [],
     this.paymentMethod,
     this.isReceipt = true,
+    this.raw,
   });
 }
 
@@ -104,6 +106,7 @@ $ocrText
             [],
         paymentMethod: parsed['payment_method'] as String?,
         isReceipt: parsed['is_receipt'] as bool? ?? true,
+        raw: content.trim(),
       );
     } catch (_) {
       throw FormatException('AI mengembalikan format tidak valid. $content');

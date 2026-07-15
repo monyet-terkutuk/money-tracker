@@ -214,5 +214,5 @@ flutter test
 - ID record menggunakan UUID v4.
 - Database berada di `catat_uang.db` dalam direktori dokumen aplikasi.
 - Kategori default di-seed otomatis saat pertama kali aplikasi dijalankan.
-- Mode gelap belum dipersist (kembali ke terang setiap restart aplikasi).
-- Fitur penyimpanan hasil scan dari pratinjau masih dalam tahap pengembangan.
+- Mode gelap dipersist menggunakan FlutterSecureStorage dan dipulihkan saat aplikasi dibuka kembali.
+- Hasil pemindaian struk dapat diedit pada pratinjau lalu disimpan sebagai transaksi (termasuk gambar struk dan respons AI mentah).

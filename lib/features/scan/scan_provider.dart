@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'ai_parser_service.dart';
 
 enum ScanState {
   idle,
@@ -16,12 +17,14 @@ class ScanStateHolder {
   final String? errorMessage;
   final String? ocrText;
   final String? receiptImagePath;
+  final AiParseResult? parseResult;
 
   const ScanStateHolder({
     this.state = ScanState.idle,
     this.errorMessage,
     this.ocrText,
     this.receiptImagePath,
+    this.parseResult,
   });
 
   ScanStateHolder copyWith({
@@ -29,12 +32,14 @@ class ScanStateHolder {
     String? errorMessage,
     String? ocrText,
     String? receiptImagePath,
+    AiParseResult? parseResult,
   }) {
     return ScanStateHolder(
       state: state ?? this.state,
       errorMessage: errorMessage,
       ocrText: ocrText ?? this.ocrText,
       receiptImagePath: receiptImagePath ?? this.receiptImagePath,
+      parseResult: parseResult ?? this.parseResult,
     );
   }
 }
@@ -52,6 +57,10 @@ class ScanNotifier extends StateNotifier<ScanStateHolder> {
 
   void setImagePath(String path) {
     state = state.copyWith(receiptImagePath: path);
+  }
+
+  void setParseResult(AiParseResult result) {
+    state = state.copyWith(parseResult: result);
   }
 
   void setError(String message) {
