@@ -164,7 +164,21 @@ final darkModeProvider = StateNotifierProvider<DarkModeNotifier, bool>((ref) {
 });
 
 class DarkModeNotifier extends StateNotifier<bool> {
-  DarkModeNotifier() : super(false);
+  DarkModeNotifier() : super(false) {
+    _load();
+  }
 
-  void toggle() => state = !state;
+  final _storage = const FlutterSecureStorage();
+
+  Future<void> _load() async {
+    final value = await _storage.read(key: darkModePrefKey);
+    if (value != null) {
+      state = value == 'true';
+    }
+  }
+
+  Future<void> toggle() async {
+    state = !state;
+    await _storage.write(key: darkModePrefKey, value: state.toString());
+  }
 }

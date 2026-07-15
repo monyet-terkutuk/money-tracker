@@ -1,30 +1,43 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:catat_uang_pribadi/main.dart';
+import 'package:catat_uang_pribadi/core/utils/constants.dart';
+import 'package:catat_uang_pribadi/features/scan/ai_parser_service.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  group('payment methods', () {
+    test('every payment method has a label', () {
+      for (final method in paymentMethods) {
+        expect(paymentMethodLabels[method], isNotNull);
+      }
+    });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    test('cash is a valid payment method', () {
+      expect(paymentMethods, contains('cash'));
+    });
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  group('AiParseResult', () {
+    test('defaults to a receipt with no items', () {
+      final result = AiParseResult();
+      expect(result.isReceipt, isTrue);
+      expect(result.items, isEmpty);
+      expect(result.totalAmount, isNull);
+      expect(result.raw, isNull);
+    });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    test('retains provided values including raw response', () {
+      final result = AiParseResult(
+        storeName: 'Toko A',
+        date: '2024-01-15',
+        totalAmount: 15000,
+        paymentMethod: 'qris',
+        raw: '{"total_amount":15000}',
+      );
+      expect(result.storeName, 'Toko A');
+      expect(result.date, '2024-01-15');
+      expect(result.totalAmount, 15000);
+      expect(result.paymentMethod, 'qris');
+      expect(result.raw, '{"total_amount":15000}');
+    });
   });
 }
