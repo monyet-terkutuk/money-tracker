@@ -12,7 +12,7 @@ void main() async {
   final db = AppDatabase();
   final notifier = CategoryNotifier(db);
   await notifier.seedDefaultCategories();
-  db.close();
+  await db.close();
 
   runApp(const ProviderScope(child: CatatUangApp()));
 }

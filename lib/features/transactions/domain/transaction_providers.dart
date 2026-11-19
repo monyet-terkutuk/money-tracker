@@ -2,9 +2,16 @@ import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/database/app_database.dart';
+import '../../home/domain/monthly_insight.dart';
+import 'category_providers.dart';
+
+final databaseGenerationProvider = StateProvider<int>((ref) => 0);
 
 final databaseProvider = Provider<AppDatabase>((ref) {
-  return AppDatabase();
+  ref.watch(databaseGenerationProvider);
+  final db = AppDatabase();
+  ref.onDispose(db.close);
+  return db;
 });
 
 final currentMonthProvider = StateProvider.autoDispose<DateTime>((ref) => DateTime.now());
@@ -26,6 +33,23 @@ final monthlySummaryProvider = FutureProvider.autoDispose<Map<String, int>>((ref
     'expense': results[1],
     'balance': results[0] - results[1],
   });
+});
+
+final monthlyInsightProvider = FutureProvider.autoDispose<MonthlyInsight>((ref) async {
+  final month = ref.watch(currentMonthProvider);
+  final db = ref.watch(databaseProvider);
+  final currentTransactions = await ref.watch(transactionListProvider.future);
+  final categories = await ref.watch(categoryListProvider.future);
+  final prevMonth = DateTime(month.year, month.month - 1, 1);
+  final prevTransactions = await db.getTransactionsByMonth(prevMonth.year, prevMonth.month);
+
+  return computeMonthlyInsight(
+    month: month,
+    now: DateTime.now(),
+    currentTransactions: currentTransactions,
+    prevTransactions: prevTransactions,
+    categories: categories,
+  );
 });
 
 final transactionDetailProvider = FutureProvider.autoDispose.family<Transaction?, String>((ref, id) {
@@ -100,6 +124,25 @@ class TransactionNotifier extends StateNotifier<AsyncValue<void>> {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
       await _db.deleteTransaction(id);
+    });
+  }
+
+  Future<void> restoreTransaction(Transaction t) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      await _db.insertTransaction(TransactionsCompanion(
+        id: Value(t.id),
+        type: Value(t.type),
+        amount: Value(t.amount),
+        categoryId: Value(t.categoryId),
+        date: Value(t.date),
+        note: Value(t.note),
+        paymentMethod: Value(t.paymentMethod),
+        receiptImagePath: Value(t.receiptImagePath),
+        aiRawResponse: Value(t.aiRawResponse),
+        createdAt: Value(t.createdAt),
+        updatedAt: Value(t.updatedAt),
+      ));
     });
   }
 }

@@ -2,7 +2,10 @@ const String appName = 'Catat Uang Pribadi';
 const String dbFileName = 'catat_uang.db';
 const String apiKeyPrefKey = 'deepseek_api_key';
 const String darkModePrefKey = 'dark_mode';
+const String budgetPrefKey = 'category_budgets_v1';
 const int undoDeleteDurationSeconds = 5;
+const int latteFactorThreshold = 35000;
+const int latteFactorMinCount = 3;
 
 const List<String> paymentMethods = [
   'cash',
