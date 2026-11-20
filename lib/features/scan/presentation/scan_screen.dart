@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import '../../../core/database/receipt_lines.dart';
 import '../../../core/utils/constants.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../shared/widgets/loading_indicator.dart';
@@ -212,6 +213,26 @@ class _ScanPreviewFormState extends ConsumerState<_ScanPreviewForm> {
     _paymentMethod = (method != null && paymentMethods.contains(method)) ? method : 'cash';
   }
 
+  List<ReceiptLineInput> _receiptLines(AiParseResult? result, String note) {
+    if (result == null) return const [];
+    final store = note.trim().isNotEmpty ? note.trim() : result.storeName;
+    final lines = <ReceiptLineInput>[];
+    for (final item in result.items) {
+      final name = item['name']?.toString().trim() ?? '';
+      final price = (item['price'] as num?)?.toInt() ?? 0;
+      var qty = (item['qty'] as num?)?.toInt() ?? 1;
+      if (qty < 1) qty = 1;
+      if (name.isEmpty || price <= 0) continue;
+      lines.add(ReceiptLineInput(
+        name: name,
+        price: price,
+        qty: qty,
+        storeName: store,
+      ));
+    }
+    return lines;
+  }
+
   DateTime? _parseDate(String? value) {
     if (value == null) return null;
     return DateTime.tryParse(value);
@@ -356,6 +377,7 @@ class _ScanPreviewFormState extends ConsumerState<_ScanPreviewForm> {
           paymentMethod: _paymentMethod,
           receiptImagePath: widget.state.receiptImagePath,
           aiRawResponse: widget.state.parseResult?.raw,
+          receiptLines: _receiptLines(widget.state.parseResult, _noteController.text),
         );
 
     final saveState = ref.read(transactionNotifierProvider);

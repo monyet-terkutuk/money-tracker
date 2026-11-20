@@ -9,14 +9,22 @@ import '../../features/transactions/domain/csv_import.dart';
 import '../../features/recurring/domain/legacy_recurring_rules.dart';
 import '../../features/recurring/domain/recurring_schedule.dart';
 import 'database_open_gate.dart';
+import 'receipt_lines.dart';
 import 'tables/transactions_table.dart';
 import 'tables/categories_table.dart';
+import 'tables/receipt_items_table.dart';
 import 'tables/recurring_bills_table.dart';
 import 'tables/recurring_occurrences_table.dart';
 
 part 'app_database.g.dart';
 
-@DriftDatabase(tables: [Transactions, Categories, RecurringBills, RecurringOccurrences])
+@DriftDatabase(tables: [
+  Transactions,
+  Categories,
+  RecurringBills,
+  RecurringOccurrences,
+  ReceiptItems,
+])
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
@@ -30,7 +38,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -41,6 +49,10 @@ class AppDatabase extends _$AppDatabase {
           if (from < 2) {
             await m.createTable(recurringBills);
             await m.createTable(recurringOccurrences);
+          }
+          if (from < 3) {
+            await m.createTable(receiptItems);
+            await backfillReceiptItems();
           }
         },
       );
@@ -70,8 +82,94 @@ class AppDatabase extends _$AppDatabase {
   Future<int> updateTransaction(TransactionsCompanion entry) =>
       (update(transactions)..where((t) => t.id.equals(entry.id.value))).write(entry);
 
-  Future<int> deleteTransaction(String id) =>
-      (delete(transactions)..where((t) => t.id.equals(id))).go();
+  Future<int> deleteTransaction(String id) {
+    return transaction(() async {
+      await (delete(receiptItems)..where((r) => r.transactionId.equals(id))).go();
+      return (delete(transactions)..where((t) => t.id.equals(id))).go();
+    });
+  }
+
+  Future<void> insertReceiptLines(
+    String transactionId,
+    List<ReceiptLineInput> lines,
+  ) async {
+    if (lines.isEmpty) return;
+    await batch((b) {
+      b.insertAll(receiptItems, [
+        for (var i = 0; i < lines.length; i++)
+          ReceiptItemsCompanion.insert(
+            id: const Uuid().v4(),
+            transactionId: transactionId,
+            name: lines[i].name,
+            price: lines[i].price,
+            qty: Value(lines[i].qty),
+            storeName: Value(lines[i].storeName),
+            position: Value(i),
+          ),
+      ]);
+    });
+  }
+
+  Future<List<ReceiptLineInput>> receiptLinesFor(String transactionId) async {
+    final rows = await (select(receiptItems)
+          ..where((r) => r.transactionId.equals(transactionId))
+          ..orderBy([(r) => OrderingTerm(expression: r.position)]))
+        .get();
+    return [
+      for (final row in rows)
+        ReceiptLineInput(
+          name: row.name,
+          price: row.price,
+          qty: row.qty,
+          storeName: row.storeName,
+        ),
+    ];
+  }
+
+  Future<List<StoredReceiptLine>> storedReceiptLines() async {
+    final rows = await (select(receiptItems).join([
+      innerJoin(
+        transactions,
+        transactions.id.equalsExp(receiptItems.transactionId),
+      ),
+    ])
+          ..orderBy([
+            OrderingTerm(
+              expression: transactions.date,
+              mode: OrderingMode.desc,
+            ),
+            OrderingTerm(expression: receiptItems.position),
+          ]))
+        .get();
+    return [
+      for (final row in rows)
+        StoredReceiptLine(
+          name: row.readTable(receiptItems).name,
+          price: row.readTable(receiptItems).price,
+          qty: row.readTable(receiptItems).qty,
+          storeName: row.readTable(receiptItems).storeName ??
+              row.readTable(transactions).note ??
+              'Toko',
+          date: row.readTable(transactions).date,
+          transactionId: row.readTable(transactions).id,
+        ),
+    ];
+  }
+
+  Future<void> backfillReceiptItems() async {
+    final existing = await select(receiptItems).get();
+    final already = existing.map((row) => row.transactionId).toSet();
+    final txs = await (select(transactions)
+          ..where((t) => t.aiRawResponse.isNotNull()))
+        .get();
+    for (final tx in txs) {
+      if (already.contains(tx.id)) continue;
+      await insertReceiptLines(
+        tx.id,
+        parseStoredReceipt(tx.aiRawResponse, tx.note),
+      );
+    }
+  }
 
   Future<int> totalIncome(int year, int month) =>
       _totalForType('income', year, month);
@@ -329,6 +427,24 @@ class AppDatabase extends _$AppDatabase {
     if (rows.isEmpty) return 0;
     return rows.map((c) => c.sortOrder).reduce((a, b) => a > b ? a : b);
   }
+}
+
+class StoredReceiptLine {
+  const StoredReceiptLine({
+    required this.name,
+    required this.price,
+    required this.qty,
+    required this.storeName,
+    required this.date,
+    required this.transactionId,
+  });
+
+  final String name;
+  final int price;
+  final int qty;
+  final String storeName;
+  final DateTime date;
+  final String transactionId;
 }
 
 class MonthTotal {

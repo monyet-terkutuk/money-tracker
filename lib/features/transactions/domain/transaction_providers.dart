@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/database/app_database.dart';
+import '../../../core/database/receipt_lines.dart';
 import '../../home/domain/monthly_insight.dart';
 import 'category_providers.dart';
 
@@ -59,6 +60,7 @@ final transactionDetailProvider = FutureProvider.autoDispose.family<Transaction?
 
 class TransactionNotifier extends StateNotifier<AsyncValue<void>> {
   final AppDatabase _db;
+  final Map<String, List<ReceiptLineInput>> _removedLines = {};
 
   TransactionNotifier(this._db) : super(const AsyncData(null));
 
@@ -71,23 +73,28 @@ class TransactionNotifier extends StateNotifier<AsyncValue<void>> {
     String paymentMethod = 'unknown',
     String? receiptImagePath,
     String? aiRawResponse,
+    List<ReceiptLineInput> receiptLines = const [],
   }) async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
       final now = DateTime.now();
-      await _db.insertTransaction(TransactionsCompanion(
-        id: Value(const Uuid().v4()),
-        type: Value(type),
-        amount: Value(amount),
-        categoryId: Value(categoryId),
-        date: Value(date),
-        note: Value(note),
-        paymentMethod: Value(paymentMethod),
-        receiptImagePath: Value(receiptImagePath),
-        aiRawResponse: Value(aiRawResponse),
-        createdAt: Value(now),
-        updatedAt: Value(now),
-      ));
+      final id = const Uuid().v4();
+      await _db.transaction(() async {
+        await _db.insertTransaction(TransactionsCompanion(
+          id: Value(id),
+          type: Value(type),
+          amount: Value(amount),
+          categoryId: Value(categoryId),
+          date: Value(date),
+          note: Value(note),
+          paymentMethod: Value(paymentMethod),
+          receiptImagePath: Value(receiptImagePath),
+          aiRawResponse: Value(aiRawResponse),
+          createdAt: Value(now),
+          updatedAt: Value(now),
+        ));
+        await _db.insertReceiptLines(id, receiptLines);
+      });
     });
   }
 
@@ -123,6 +130,7 @@ class TransactionNotifier extends StateNotifier<AsyncValue<void>> {
   Future<void> deleteTransaction(String id) async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
+      _removedLines[id] = await _db.receiptLinesFor(id);
       await _db.deleteTransaction(id);
     });
   }
@@ -130,19 +138,23 @@ class TransactionNotifier extends StateNotifier<AsyncValue<void>> {
   Future<void> restoreTransaction(Transaction t) async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
-      await _db.insertTransaction(TransactionsCompanion(
-        id: Value(t.id),
-        type: Value(t.type),
-        amount: Value(t.amount),
-        categoryId: Value(t.categoryId),
-        date: Value(t.date),
-        note: Value(t.note),
-        paymentMethod: Value(t.paymentMethod),
-        receiptImagePath: Value(t.receiptImagePath),
-        aiRawResponse: Value(t.aiRawResponse),
-        createdAt: Value(t.createdAt),
-        updatedAt: Value(t.updatedAt),
-      ));
+      final lines = _removedLines.remove(t.id) ?? const <ReceiptLineInput>[];
+      await _db.transaction(() async {
+        await _db.insertTransaction(TransactionsCompanion(
+          id: Value(t.id),
+          type: Value(t.type),
+          amount: Value(t.amount),
+          categoryId: Value(t.categoryId),
+          date: Value(t.date),
+          note: Value(t.note),
+          paymentMethod: Value(t.paymentMethod),
+          receiptImagePath: Value(t.receiptImagePath),
+          aiRawResponse: Value(t.aiRawResponse),
+          createdAt: Value(t.createdAt),
+          updatedAt: Value(t.updatedAt),
+        ));
+        await _db.insertReceiptLines(t.id, lines);
+      });
     });
   }
 }

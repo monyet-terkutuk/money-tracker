@@ -8,11 +8,9 @@ import '../../../core/utils/date_formatter.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/loading_indicator.dart';
 import '../../transactions/domain/transaction_providers.dart';
-import '../domain/price_memory_helper.dart';
-
-final _allTransactionsProvider =
-    FutureProvider.autoDispose<List<Transaction>>((ref) {
-  return ref.watch(databaseProvider).getAllTransactions();
+final _priceMemoryProvider =
+    FutureProvider.autoDispose<List<StoredReceiptLine>>((ref) {
+  return ref.watch(databaseProvider).storedReceiptLines();
 });
 
 class PriceMemoryScreen extends ConsumerStatefulWidget {
@@ -34,7 +32,7 @@ class _PriceMemoryScreenState extends ConsumerState<PriceMemoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final txAsync = ref.watch(_allTransactionsProvider);
+    final txAsync = ref.watch(_priceMemoryProvider);
     final secondaryText = AppPalette.secondaryTextColor(context);
 
     return Scaffold(
@@ -118,13 +116,13 @@ class _PriceMemoryScreenState extends ConsumerState<PriceMemoryScreen> {
           Expanded(
             child: txAsync.when(
               data: (txs) {
-                final allEntries = extractPriceMemory(txs);
+                final allEntries = txs;
                 final filtered = _query.isEmpty
                     ? allEntries
                     : allEntries
                         .where(
                           (e) =>
-                              e.itemName.toLowerCase().contains(_query) ||
+                              e.name.toLowerCase().contains(_query) ||
                               e.storeName.toLowerCase().contains(_query),
                         )
                         .toList();
@@ -159,8 +157,8 @@ class _PriceMemoryScreenState extends ConsumerState<PriceMemoryScreen> {
                       child: ListTile(
                         title: Text(
                           item.qty > 1
-                              ? '${item.itemName} (${item.qty}x)'
-                              : item.itemName,
+                              ? '${item.name} (${item.qty}x)'
+                              : item.name,
                           style: const TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 14,

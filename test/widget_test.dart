@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:catat_uang_pribadi/core/database/app_database.dart';
 import 'package:catat_uang_pribadi/core/utils/constants.dart';
 import 'package:catat_uang_pribadi/features/home/domain/monthly_insight.dart';
-import 'package:catat_uang_pribadi/features/price_memory/domain/price_memory_helper.dart';
+import 'package:catat_uang_pribadi/core/database/receipt_lines.dart';
 import 'package:catat_uang_pribadi/features/scan/ai_parser_service.dart';
 import 'package:catat_uang_pribadi/features/scan/quick_parser.dart';
 
@@ -185,27 +185,14 @@ void main() {
     });
   });
 
-  group('extractPriceMemory', () {
-    test('extracts itemized receipt prices sorted by newest date', () {
-      final now = DateTime(2026, 11, 19);
-      final txs = [
-        Transaction(
-          id: 't1',
-          type: 'expense',
-          amount: 45000,
-          categoryId: 'c1',
-          date: DateTime(2026, 11, 10),
-          paymentMethod: 'qris',
-          aiRawResponse:
-              '{"store_name":"Kopi Kenangan","items":[{"name":"Kopi Susu","price":22000,"qty":2}]}',
-          createdAt: now,
-          updatedAt: now,
-        ),
-      ];
-
-      final entries = extractPriceMemory(txs);
+  group('parseStoredReceipt', () {
+    test('extracts itemized receipt prices from saved JSON', () {
+      final entries = parseStoredReceipt(
+        '{"store_name":"Kopi Kenangan","items":[{"name":"Kopi Susu","price":22000,"qty":2},{"name":"","price":1}]}',
+        'Catatan',
+      );
       expect(entries.length, 1);
-      expect(entries.first.itemName, 'Kopi Susu');
+      expect(entries.first.name, 'Kopi Susu');
       expect(entries.first.price, 22000);
       expect(entries.first.qty, 2);
       expect(entries.first.storeName, 'Kopi Kenangan');

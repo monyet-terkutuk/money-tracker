@@ -1783,6 +1783,393 @@ class RecurringOccurrencesCompanion
   }
 }
 
+class $ReceiptItemsTable extends ReceiptItems
+    with TableInfo<$ReceiptItemsTable, ReceiptItem> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ReceiptItemsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _transactionIdMeta =
+      const VerificationMeta('transactionId');
+  @override
+  late final GeneratedColumn<String> transactionId = GeneratedColumn<String>(
+      'transaction_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES transactions (id) ON DELETE CASCADE'));
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+      'name', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _priceMeta = const VerificationMeta('price');
+  @override
+  late final GeneratedColumn<int> price = GeneratedColumn<int>(
+      'price', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _qtyMeta = const VerificationMeta('qty');
+  @override
+  late final GeneratedColumn<int> qty = GeneratedColumn<int>(
+      'qty', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(1));
+  static const VerificationMeta _storeNameMeta =
+      const VerificationMeta('storeName');
+  @override
+  late final GeneratedColumn<String> storeName = GeneratedColumn<String>(
+      'store_name', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _positionMeta =
+      const VerificationMeta('position');
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+      'position', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, transactionId, name, price, qty, storeName, position];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'receipt_items';
+  @override
+  VerificationContext validateIntegrity(Insertable<ReceiptItem> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('transaction_id')) {
+      context.handle(
+          _transactionIdMeta,
+          transactionId.isAcceptableOrUnknown(
+              data['transaction_id']!, _transactionIdMeta));
+    } else if (isInserting) {
+      context.missing(_transactionIdMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('price')) {
+      context.handle(
+          _priceMeta, price.isAcceptableOrUnknown(data['price']!, _priceMeta));
+    } else if (isInserting) {
+      context.missing(_priceMeta);
+    }
+    if (data.containsKey('qty')) {
+      context.handle(
+          _qtyMeta, qty.isAcceptableOrUnknown(data['qty']!, _qtyMeta));
+    }
+    if (data.containsKey('store_name')) {
+      context.handle(_storeNameMeta,
+          storeName.isAcceptableOrUnknown(data['store_name']!, _storeNameMeta));
+    }
+    if (data.containsKey('position')) {
+      context.handle(_positionMeta,
+          position.isAcceptableOrUnknown(data['position']!, _positionMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ReceiptItem map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ReceiptItem(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      transactionId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}transaction_id'])!,
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      price: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}price'])!,
+      qty: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}qty'])!,
+      storeName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}store_name']),
+      position: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}position'])!,
+    );
+  }
+
+  @override
+  $ReceiptItemsTable createAlias(String alias) {
+    return $ReceiptItemsTable(attachedDatabase, alias);
+  }
+}
+
+class ReceiptItem extends DataClass implements Insertable<ReceiptItem> {
+  final String id;
+  final String transactionId;
+  final String name;
+  final int price;
+  final int qty;
+  final String? storeName;
+  final int position;
+  const ReceiptItem(
+      {required this.id,
+      required this.transactionId,
+      required this.name,
+      required this.price,
+      required this.qty,
+      this.storeName,
+      required this.position});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['transaction_id'] = Variable<String>(transactionId);
+    map['name'] = Variable<String>(name);
+    map['price'] = Variable<int>(price);
+    map['qty'] = Variable<int>(qty);
+    if (!nullToAbsent || storeName != null) {
+      map['store_name'] = Variable<String>(storeName);
+    }
+    map['position'] = Variable<int>(position);
+    return map;
+  }
+
+  ReceiptItemsCompanion toCompanion(bool nullToAbsent) {
+    return ReceiptItemsCompanion(
+      id: Value(id),
+      transactionId: Value(transactionId),
+      name: Value(name),
+      price: Value(price),
+      qty: Value(qty),
+      storeName: storeName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(storeName),
+      position: Value(position),
+    );
+  }
+
+  factory ReceiptItem.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ReceiptItem(
+      id: serializer.fromJson<String>(json['id']),
+      transactionId: serializer.fromJson<String>(json['transactionId']),
+      name: serializer.fromJson<String>(json['name']),
+      price: serializer.fromJson<int>(json['price']),
+      qty: serializer.fromJson<int>(json['qty']),
+      storeName: serializer.fromJson<String?>(json['storeName']),
+      position: serializer.fromJson<int>(json['position']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'transactionId': serializer.toJson<String>(transactionId),
+      'name': serializer.toJson<String>(name),
+      'price': serializer.toJson<int>(price),
+      'qty': serializer.toJson<int>(qty),
+      'storeName': serializer.toJson<String?>(storeName),
+      'position': serializer.toJson<int>(position),
+    };
+  }
+
+  ReceiptItem copyWith(
+          {String? id,
+          String? transactionId,
+          String? name,
+          int? price,
+          int? qty,
+          Value<String?> storeName = const Value.absent(),
+          int? position}) =>
+      ReceiptItem(
+        id: id ?? this.id,
+        transactionId: transactionId ?? this.transactionId,
+        name: name ?? this.name,
+        price: price ?? this.price,
+        qty: qty ?? this.qty,
+        storeName: storeName.present ? storeName.value : this.storeName,
+        position: position ?? this.position,
+      );
+  ReceiptItem copyWithCompanion(ReceiptItemsCompanion data) {
+    return ReceiptItem(
+      id: data.id.present ? data.id.value : this.id,
+      transactionId: data.transactionId.present
+          ? data.transactionId.value
+          : this.transactionId,
+      name: data.name.present ? data.name.value : this.name,
+      price: data.price.present ? data.price.value : this.price,
+      qty: data.qty.present ? data.qty.value : this.qty,
+      storeName: data.storeName.present ? data.storeName.value : this.storeName,
+      position: data.position.present ? data.position.value : this.position,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ReceiptItem(')
+          ..write('id: $id, ')
+          ..write('transactionId: $transactionId, ')
+          ..write('name: $name, ')
+          ..write('price: $price, ')
+          ..write('qty: $qty, ')
+          ..write('storeName: $storeName, ')
+          ..write('position: $position')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, transactionId, name, price, qty, storeName, position);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ReceiptItem &&
+          other.id == this.id &&
+          other.transactionId == this.transactionId &&
+          other.name == this.name &&
+          other.price == this.price &&
+          other.qty == this.qty &&
+          other.storeName == this.storeName &&
+          other.position == this.position);
+}
+
+class ReceiptItemsCompanion extends UpdateCompanion<ReceiptItem> {
+  final Value<String> id;
+  final Value<String> transactionId;
+  final Value<String> name;
+  final Value<int> price;
+  final Value<int> qty;
+  final Value<String?> storeName;
+  final Value<int> position;
+  final Value<int> rowid;
+  const ReceiptItemsCompanion({
+    this.id = const Value.absent(),
+    this.transactionId = const Value.absent(),
+    this.name = const Value.absent(),
+    this.price = const Value.absent(),
+    this.qty = const Value.absent(),
+    this.storeName = const Value.absent(),
+    this.position = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ReceiptItemsCompanion.insert({
+    required String id,
+    required String transactionId,
+    required String name,
+    required int price,
+    this.qty = const Value.absent(),
+    this.storeName = const Value.absent(),
+    this.position = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        transactionId = Value(transactionId),
+        name = Value(name),
+        price = Value(price);
+  static Insertable<ReceiptItem> custom({
+    Expression<String>? id,
+    Expression<String>? transactionId,
+    Expression<String>? name,
+    Expression<int>? price,
+    Expression<int>? qty,
+    Expression<String>? storeName,
+    Expression<int>? position,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (transactionId != null) 'transaction_id': transactionId,
+      if (name != null) 'name': name,
+      if (price != null) 'price': price,
+      if (qty != null) 'qty': qty,
+      if (storeName != null) 'store_name': storeName,
+      if (position != null) 'position': position,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ReceiptItemsCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? transactionId,
+      Value<String>? name,
+      Value<int>? price,
+      Value<int>? qty,
+      Value<String?>? storeName,
+      Value<int>? position,
+      Value<int>? rowid}) {
+    return ReceiptItemsCompanion(
+      id: id ?? this.id,
+      transactionId: transactionId ?? this.transactionId,
+      name: name ?? this.name,
+      price: price ?? this.price,
+      qty: qty ?? this.qty,
+      storeName: storeName ?? this.storeName,
+      position: position ?? this.position,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (transactionId.present) {
+      map['transaction_id'] = Variable<String>(transactionId.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (price.present) {
+      map['price'] = Variable<int>(price.value);
+    }
+    if (qty.present) {
+      map['qty'] = Variable<int>(qty.value);
+    }
+    if (storeName.present) {
+      map['store_name'] = Variable<String>(storeName.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ReceiptItemsCompanion(')
+          ..write('id: $id, ')
+          ..write('transactionId: $transactionId, ')
+          ..write('name: $name, ')
+          ..write('price: $price, ')
+          ..write('qty: $qty, ')
+          ..write('storeName: $storeName, ')
+          ..write('position: $position, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1791,12 +2178,30 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $RecurringBillsTable recurringBills = $RecurringBillsTable(this);
   late final $RecurringOccurrencesTable recurringOccurrences =
       $RecurringOccurrencesTable(this);
+  late final $ReceiptItemsTable receiptItems = $ReceiptItemsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [categories, transactions, recurringBills, recurringOccurrences];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+        categories,
+        transactions,
+        recurringBills,
+        recurringOccurrences,
+        receiptItems
+      ];
+  @override
+  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
+        [
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('transactions',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('receipt_items', kind: UpdateKind.delete),
+            ],
+          ),
+        ],
+      );
 }
 
 typedef $$CategoriesTableCreateCompanionBuilder = CategoriesCompanion Function({
@@ -2129,6 +2534,21 @@ final class $$TransactionsTableReferences
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: [item]));
   }
+
+  static MultiTypedResultKey<$ReceiptItemsTable, List<ReceiptItem>>
+      _receiptItemsRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.receiptItems,
+              aliasName: $_aliasNameGenerator(
+                  db.transactions.id, db.receiptItems.transactionId));
+
+  $$ReceiptItemsTableProcessedTableManager get receiptItemsRefs {
+    final manager = $$ReceiptItemsTableTableManager($_db, $_db.receiptItems)
+        .filter((f) => f.transactionId.id($_item.id));
+
+    final cache = $_typedResult.readTableOrNull(_receiptItemsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
 }
 
 class $$TransactionsTableFilterComposer
@@ -2189,6 +2609,27 @@ class $$TransactionsTableFilterComposer
                   $removeJoinBuilderFromRootComposer,
             ));
     return composer;
+  }
+
+  Expression<bool> receiptItemsRefs(
+      Expression<bool> Function($$ReceiptItemsTableFilterComposer f) f) {
+    final $$ReceiptItemsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.receiptItems,
+        getReferencedColumn: (t) => t.transactionId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ReceiptItemsTableFilterComposer(
+              $db: $db,
+              $table: $db.receiptItems,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
   }
 }
 
@@ -2313,6 +2754,27 @@ class $$TransactionsTableAnnotationComposer
             ));
     return composer;
   }
+
+  Expression<T> receiptItemsRefs<T extends Object>(
+      Expression<T> Function($$ReceiptItemsTableAnnotationComposer a) f) {
+    final $$ReceiptItemsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.receiptItems,
+        getReferencedColumn: (t) => t.transactionId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ReceiptItemsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.receiptItems,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$TransactionsTableTableManager extends RootTableManager<
@@ -2326,7 +2788,7 @@ class $$TransactionsTableTableManager extends RootTableManager<
     $$TransactionsTableUpdateCompanionBuilder,
     (Transaction, $$TransactionsTableReferences),
     Transaction,
-    PrefetchHooks Function({bool categoryId})> {
+    PrefetchHooks Function({bool categoryId, bool receiptItemsRefs})> {
   $$TransactionsTableTableManager(_$AppDatabase db, $TransactionsTable table)
       : super(TableManagerState(
           db: db,
@@ -2399,10 +2861,11 @@ class $$TransactionsTableTableManager extends RootTableManager<
                     $$TransactionsTableReferences(db, table, e)
                   ))
               .toList(),
-          prefetchHooksCallback: ({categoryId = false}) {
+          prefetchHooksCallback: (
+              {categoryId = false, receiptItemsRefs = false}) {
             return PrefetchHooks(
               db: db,
-              explicitlyWatchedTables: [],
+              explicitlyWatchedTables: [if (receiptItemsRefs) db.receiptItems],
               addJoins: <
                   T extends TableManagerState<
                       dynamic,
@@ -2430,7 +2893,20 @@ class $$TransactionsTableTableManager extends RootTableManager<
                 return state;
               },
               getPrefetchedDataCallback: (items) async {
-                return [];
+                return [
+                  if (receiptItemsRefs)
+                    await $_getPrefetchedData(
+                        currentTable: table,
+                        referencedTable: $$TransactionsTableReferences
+                            ._receiptItemsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$TransactionsTableReferences(db, table, p0)
+                                .receiptItemsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.transactionId == item.id),
+                        typedResults: items)
+                ];
               },
             );
           },
@@ -2448,7 +2924,7 @@ typedef $$TransactionsTableProcessedTableManager = ProcessedTableManager<
     $$TransactionsTableUpdateCompanionBuilder,
     (Transaction, $$TransactionsTableReferences),
     Transaction,
-    PrefetchHooks Function({bool categoryId})>;
+    PrefetchHooks Function({bool categoryId, bool receiptItemsRefs})>;
 typedef $$RecurringBillsTableCreateCompanionBuilder = RecurringBillsCompanion
     Function({
   required String id,
@@ -2879,6 +3355,311 @@ typedef $$RecurringOccurrencesTableProcessedTableManager
         ),
         RecurringOccurrence,
         PrefetchHooks Function()>;
+typedef $$ReceiptItemsTableCreateCompanionBuilder = ReceiptItemsCompanion
+    Function({
+  required String id,
+  required String transactionId,
+  required String name,
+  required int price,
+  Value<int> qty,
+  Value<String?> storeName,
+  Value<int> position,
+  Value<int> rowid,
+});
+typedef $$ReceiptItemsTableUpdateCompanionBuilder = ReceiptItemsCompanion
+    Function({
+  Value<String> id,
+  Value<String> transactionId,
+  Value<String> name,
+  Value<int> price,
+  Value<int> qty,
+  Value<String?> storeName,
+  Value<int> position,
+  Value<int> rowid,
+});
+
+final class $$ReceiptItemsTableReferences
+    extends BaseReferences<_$AppDatabase, $ReceiptItemsTable, ReceiptItem> {
+  $$ReceiptItemsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $TransactionsTable _transactionIdTable(_$AppDatabase db) =>
+      db.transactions.createAlias($_aliasNameGenerator(
+          db.receiptItems.transactionId, db.transactions.id));
+
+  $$TransactionsTableProcessedTableManager? get transactionId {
+    if ($_item.transactionId == null) return null;
+    final manager = $$TransactionsTableTableManager($_db, $_db.transactions)
+        .filter((f) => f.id($_item.transactionId!));
+    final item = $_typedResult.readTableOrNull(_transactionIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$ReceiptItemsTableFilterComposer
+    extends Composer<_$AppDatabase, $ReceiptItemsTable> {
+  $$ReceiptItemsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get price => $composableBuilder(
+      column: $table.price, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get qty => $composableBuilder(
+      column: $table.qty, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get storeName => $composableBuilder(
+      column: $table.storeName, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get position => $composableBuilder(
+      column: $table.position, builder: (column) => ColumnFilters(column));
+
+  $$TransactionsTableFilterComposer get transactionId {
+    final $$TransactionsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.transactionId,
+        referencedTable: $db.transactions,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TransactionsTableFilterComposer(
+              $db: $db,
+              $table: $db.transactions,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$ReceiptItemsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ReceiptItemsTable> {
+  $$ReceiptItemsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get price => $composableBuilder(
+      column: $table.price, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get qty => $composableBuilder(
+      column: $table.qty, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get storeName => $composableBuilder(
+      column: $table.storeName, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get position => $composableBuilder(
+      column: $table.position, builder: (column) => ColumnOrderings(column));
+
+  $$TransactionsTableOrderingComposer get transactionId {
+    final $$TransactionsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.transactionId,
+        referencedTable: $db.transactions,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TransactionsTableOrderingComposer(
+              $db: $db,
+              $table: $db.transactions,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$ReceiptItemsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ReceiptItemsTable> {
+  $$ReceiptItemsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<int> get price =>
+      $composableBuilder(column: $table.price, builder: (column) => column);
+
+  GeneratedColumn<int> get qty =>
+      $composableBuilder(column: $table.qty, builder: (column) => column);
+
+  GeneratedColumn<String> get storeName =>
+      $composableBuilder(column: $table.storeName, builder: (column) => column);
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
+  $$TransactionsTableAnnotationComposer get transactionId {
+    final $$TransactionsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.transactionId,
+        referencedTable: $db.transactions,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TransactionsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.transactions,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$ReceiptItemsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $ReceiptItemsTable,
+    ReceiptItem,
+    $$ReceiptItemsTableFilterComposer,
+    $$ReceiptItemsTableOrderingComposer,
+    $$ReceiptItemsTableAnnotationComposer,
+    $$ReceiptItemsTableCreateCompanionBuilder,
+    $$ReceiptItemsTableUpdateCompanionBuilder,
+    (ReceiptItem, $$ReceiptItemsTableReferences),
+    ReceiptItem,
+    PrefetchHooks Function({bool transactionId})> {
+  $$ReceiptItemsTableTableManager(_$AppDatabase db, $ReceiptItemsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ReceiptItemsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ReceiptItemsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ReceiptItemsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> transactionId = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<int> price = const Value.absent(),
+            Value<int> qty = const Value.absent(),
+            Value<String?> storeName = const Value.absent(),
+            Value<int> position = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              ReceiptItemsCompanion(
+            id: id,
+            transactionId: transactionId,
+            name: name,
+            price: price,
+            qty: qty,
+            storeName: storeName,
+            position: position,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String transactionId,
+            required String name,
+            required int price,
+            Value<int> qty = const Value.absent(),
+            Value<String?> storeName = const Value.absent(),
+            Value<int> position = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              ReceiptItemsCompanion.insert(
+            id: id,
+            transactionId: transactionId,
+            name: name,
+            price: price,
+            qty: qty,
+            storeName: storeName,
+            position: position,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$ReceiptItemsTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({transactionId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (transactionId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.transactionId,
+                    referencedTable:
+                        $$ReceiptItemsTableReferences._transactionIdTable(db),
+                    referencedColumn: $$ReceiptItemsTableReferences
+                        ._transactionIdTable(db)
+                        .id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$ReceiptItemsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $ReceiptItemsTable,
+    ReceiptItem,
+    $$ReceiptItemsTableFilterComposer,
+    $$ReceiptItemsTableOrderingComposer,
+    $$ReceiptItemsTableAnnotationComposer,
+    $$ReceiptItemsTableCreateCompanionBuilder,
+    $$ReceiptItemsTableUpdateCompanionBuilder,
+    (ReceiptItem, $$ReceiptItemsTableReferences),
+    ReceiptItem,
+    PrefetchHooks Function({bool transactionId})>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2891,4 +3672,6 @@ class $AppDatabaseManager {
       $$RecurringBillsTableTableManager(_db, _db.recurringBills);
   $$RecurringOccurrencesTableTableManager get recurringOccurrences =>
       $$RecurringOccurrencesTableTableManager(_db, _db.recurringOccurrences);
+  $$ReceiptItemsTableTableManager get receiptItems =>
+      $$ReceiptItemsTableTableManager(_db, _db.receiptItems);
 }
